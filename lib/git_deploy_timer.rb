@@ -3,6 +3,7 @@ require 'date'
 require 'fileutils'
 
 module GitDeployTimer
+  ENVIRONMENTS = Array['sit', 'stg', 'prd']
   COMMIT_TIMESTAMP_KEY = 'commitTimestamp'
 
   # Clones a report without checking out HEAD. Returns the directory the repo is checked out into
@@ -31,6 +32,20 @@ module GitDeployTimer
         m = /(?<id>\w*) (?<tag>\w*-\d*) (?<timestamp>.*)/.match(line)
         { 'id' => m[:id], 'tag' => m[:tag], 'tagTimestamp' => DateTime.parse(m[:timestamp]) } if m
       end.compact
+    end
+  end
+
+  # Commits must be in the reverse chronological order
+  def self.merge_commits_and_deploy_tags(commits, tags)
+    env_timestamps = {}
+
+    commits.map do |commit|
+      tags.select { |t| t['id'] == commit['id'] }.each do |t|
+        m = /(?<env>#{ENVIRONMENTS.join('|')})-\d*/.match(t['tag'])
+        env_timestamps[m[:env] + 'Timestamp'] = t['tagTimestamp'] if m
+      end
+
+      commit.merge(env_timestamps)
     end
   end
 end

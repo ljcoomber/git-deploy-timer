@@ -36,4 +36,16 @@ describe GitDeployTimer do
     expect(tag(5)).to eq('stg-1')
     expect(tag(6)).to eq('sit-1')
   end
+
+  it 'merges deployment tags with commits' do
+    commits = GitDeployTimer.commit_times(@git_repo)
+    tags = GitDeployTimer.tag_times(@git_repo)
+    merged = GitDeployTimer.merge_commits_and_deploy_tags(commits, tags)
+
+    expect(merged.length).to eq(4)
+    expect(merged).to be_in_reverse_order_for('commitTimestamp')
+    expect(merged).to be_in_reverse_order_for('sitTimestamp')
+    expect(merged).to be_in_reverse_order_for('stgTimestamp')
+    expect(merged).to be_in_reverse_order_for('prdTimestamp')
+  end
 end

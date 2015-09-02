@@ -79,3 +79,19 @@ def tag(idx)
   tags = GitDeployTimer.tag_times(@git_repo)
   tags[idx]['tag']
 end
+
+RSpec::Matchers.define :be_in_reverse_order_for do |key|
+  match do |merged|
+    vals = extract(merged, key)
+    sorted = vals.sort.reverse
+    vals == sorted
+  end
+
+  failure_message do |merged|
+    "expected #{key} to be in reverse order but was not: #{extract(merged, key)}"
+  end
+
+  def extract(merged, key)
+    merged.map { |m| m[key] }
+  end
+end
