@@ -22,4 +22,15 @@ module GitDeployTimer
       end
     end
   end
+
+  # Returns [ { "id" => ..., "tag" => ..., "tagTimestamp" =>}, { ... } ], reverse order of referenced commit
+  def self.tag_times(local_repo)
+    Dir.chdir(local_repo) do
+      t = `git for-each-ref --sort='-*committerdate' --format '%(*objectname) %(tag) %(taggerdate:iso8601)' refs/tags`
+      t.each_line.map do |line|
+        m = /(?<id>\w*) (?<tag>\w*-\d*) (?<timestamp>.*)/.match(line)
+        { 'id' => m[:id], 'tag' => m[:tag], 'tagTimestamp' => DateTime.parse(m[:timestamp]) } if m
+      end.compact
+    end
+  end
 end

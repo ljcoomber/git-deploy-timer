@@ -58,6 +58,7 @@ RSpec::Matchers.define :have_last_commit_message do |message|
     end
   end
 end
+
 def commit(idx)
   commits = GitDeployTimer.commit_times(@git_repo)
   commits[idx]['commitTimestamp']
@@ -72,4 +73,9 @@ RSpec::Matchers.define :eq_iso8601_date do |expected|
   failure_message do |actual|
     "expected date to be #{expected} but was #{actual}"
   end
+end
+
+def tag(idx)
+  tags = GitDeployTimer.tag_times(@git_repo)
+  tags[idx]['tag']
 end
