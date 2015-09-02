@@ -1,6 +1,8 @@
 require 'spec_helper'
+require 'date'
 require 'fileutils'
 
+# TODO: Negative cases
 describe GitDeployTimer do
   before :all do
     @git_repo = init_git_repo
@@ -17,5 +19,13 @@ describe GitDeployTimer do
     ensure
       FileUtils.rm_rf(local_repo)
     end
+  end
+
+  it 'extracts commits in reverse chronological order' do
+    commits = GitDeployTimer.commit_times(@git_repo)
+    expect(commits[0]['commitTimestamp']).to eq(DateTime.iso8601('2010-04-10T12:05:00+01:00'))
+    expect(commits[1]['commitTimestamp']).to eq(DateTime.iso8601('2010-04-10T12:00:00+01:00'))
+    expect(commits[2]['commitTimestamp']).to eq(DateTime.iso8601('2010-04-10T11:00:00+01:00'))
+    expect(commits[3]['commitTimestamp']).to eq(DateTime.iso8601('2010-04-10T10:00:00+01:00'))
   end
 end
