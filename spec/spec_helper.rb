@@ -1,7 +1,8 @@
 require 'git_deploy_timer'
 
-require 'rspec/expectations'
+require 'date'
 require 'fileutils'
+require 'rspec/expectations'
 require 'tmpdir'
 
 # rubocop:disable Metrics/MethodLength
@@ -55,5 +56,20 @@ RSpec::Matchers.define :have_last_commit_message do |message|
       /\w* (?<last_message>.*)/ =~ `git log -n 1 --pretty=oneline`
       last_message
     end
+  end
+end
+def commit(idx)
+  commits = GitDeployTimer.commit_times(@git_repo)
+  commits[idx]['commitTimestamp']
+end
+
+RSpec::Matchers.define :eq_iso8601_date do |expected|
+  match do |actual|
+    # TODO: to_s comparison is purely here to stop Ruby segfaulting!
+    actual.to_s == DateTime.iso8601(expected).to_s
+  end
+
+  failure_message do |actual|
+    "expected date to be #{expected} but was #{actual}"
   end
 end
