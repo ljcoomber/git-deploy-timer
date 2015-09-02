@@ -1,0 +1,59 @@
+require 'git_deploy_timer'
+
+require 'rspec/expectations'
+require 'fileutils'
+require 'tmpdir'
+
+# rubocop:disable Metrics/MethodLength
+def init_git_repo
+  tmpdir = Dir.mktmpdir
+  Dir.chdir(tmpdir) do
+    `git init`
+
+    `echo 1 > mock_codebase`
+    `git add mock_codebase`
+    `GIT_AUTHOR_DATE="2010-04-10 10:00" GIT_COMMITTER_DATE="2010-04-10 10:00" git commit -m "Feature 1"`
+    `GIT_COMMITTER_DATE="2010-04-10 10:10" git tag -a sit-1 -m "SIT deploy complete" HEAD`
+    `GIT_COMMITTER_DATE="2010-04-10 10:15" git tag -a stg-1 -m "Stage deploy complete" HEAD`
+    `GIT_COMMITTER_DATE="2010-04-10 10:20" git tag -a prd-1 -m "Prod deploy complete" HEAD`
+
+    `echo 2 > mock_codebase`
+    `git add mock_codebase`
+    `GIT_AUTHOR_DATE="2010-04-10 11:00" GIT_COMMITTER_DATE="2010-04-10 11:00" git commit -m "Feature 2"`
+    `GIT_COMMITTER_DATE="2010-04-10 11:10" git tag -a sit-2 -m "SIT deploy complete" HEAD`
+
+    `echo 3 > mock_codebase`
+    `git add mock_codebase`
+    `GIT_AUTHOR_DATE="2010-04-10 12:00" GIT_COMMITTER_DATE="2010-04-10 12:00" git commit -m "Feature 3"`
+
+    `echo 4 > mock_codebase`
+    `git add mock_codebase`
+    `GIT_AUTHOR_DATE="2010-04-10 12:05" GIT_COMMITTER_DATE="2010-04-10 12:05" git commit -m "Feature 4"`
+
+    `GIT_COMMITTER_DATE="2010-04-10 12:30" git tag -a sit-3 -m "SIT deploy complete" HEAD`
+    `GIT_COMMITTER_DATE="2010-04-14 13:35" git tag -a stg-2 -m "Stage deploy complete" HEAD`
+    `GIT_COMMITTER_DATE="2010-06-02 08:00" git tag -a prd-2 -m "Prod deploy complete" HEAD`
+
+    `git tag -a RANDOM_TAG -m "A tag to ensure non-deploy tags are ignored"`
+  end
+
+  tmpdir
+end
+# rubocop:enable Metrics/MethodLength
+
+RSpec::Matchers.define :have_last_commit_message do |message|
+  match do |repo|
+    message == last_commit_message(repo)
+  end
+
+  failure_message do |repo|
+    "expected last commit message to be '#{message}' but was '#{last_commit_message(repo)}' in repo #{repo}"
+  end
+
+  def last_commit_message(repo)
+    Dir.chdir(repo) do
+      /\w* (?<last_message>.*)/ =~ `git log -n 1 --pretty=oneline`
+      last_message
+    end
+  end
+end
