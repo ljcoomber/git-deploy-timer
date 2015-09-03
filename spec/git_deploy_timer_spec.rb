@@ -20,6 +20,10 @@ describe GitDeployTimer do
     end
   end
 
+  it 'throws an error if cloning a non-existent repo' do
+    expect { GitDeployTimer.clone_repo('NOT_FOUND') }.to raise_error('Error cloning repository NOT_FOUND')
+  end
+
   it 'extracts commits in reverse chronological order' do
     expect(commit(0)).to eq_iso8601_date('2010-04-10T12:05:00+01:00')
     expect(commit(1)).to eq_iso8601_date('2010-04-10T12:00:00+01:00')
@@ -58,5 +62,12 @@ describe GitDeployTimer do
     expect(times.length).to eq(1)
     expect(times.first['commitToStgSecs']).to eq(4481700)
     expect(times.first['commitToStg']).to eq('1 month, 3 weeks, 20 hours, 55 minutes')
+  end
+
+  it 'does not add times if no deployments have been made' do
+    fixture = [{ 'commitTimestamp' => DateTime.iso8601('2010-04-10T12:05:00+01:00') }]
+
+    times = GitDeployTimer.add_elapsed_times(fixture)
+    expect(times).to eq(fixture)
   end
 end

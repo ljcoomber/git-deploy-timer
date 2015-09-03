@@ -1,7 +1,9 @@
 require 'git_deploy_timer/version'
 require 'date'
+require 'English'
 require 'fileutils'
 require 'time_difference'
+require 'tmpdir'
 
 module GitDeployTimer
   ENVIRONMENTS = Array['sit', 'stg', 'prd']
@@ -9,9 +11,9 @@ module GitDeployTimer
 
   # Clones a report without checking out HEAD. Returns the directory the repo is checked out into
   def self.clone_repo(repository)
-    require 'tmpdir'
     repo_dir = Dir.mktmpdir
     `git clone -n #{repository} #{repo_dir}`
+    fail "Error cloning repository #{repository}" if $CHILD_STATUS != 0
     repo_dir
   end
 
@@ -61,7 +63,7 @@ module GitDeployTimer
              "commitTo#{env.capitalize}" => pp_time_difference(dt.in_general)]
       end
 
-      m.merge(deploy_times.reduce(:merge))
+      m.merge(deploy_times.reduce({}, :merge))
     end
   end
 
@@ -75,7 +77,6 @@ module GitDeployTimer
     tags = tag_times(local_repo)
     merged = merge_commits_and_deploy_tags(commits, tags)
     add_elapsed_times(merged)
-
   ensure FileUtils.rm_rf(local_repo)
   end
 end
