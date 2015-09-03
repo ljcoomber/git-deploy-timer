@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'git_deploy_timer'
+
+require 'irb'
+IRB.start

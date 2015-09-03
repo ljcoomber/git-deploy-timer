@@ -68,4 +68,14 @@ module GitDeployTimer
   def self.pp_time_difference(td)
     td.select { |_, v| v > 0 }.map { |k, v| "#{v} #{k.to_s.chop}#{'s' if v > 1}" }.join(', ')
   end
+
+  def self.deploy_timings(repo)
+    local_repo = clone_repo(repo)
+    commits = commit_times(local_repo)
+    tags = tag_times(local_repo)
+    merged = merge_commits_and_deploy_tags(commits, tags)
+    add_elapsed_times(merged)
+
+  ensure FileUtils.rm_rf(local_repo)
+  end
 end
