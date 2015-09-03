@@ -1,6 +1,7 @@
 require 'git_deploy_timer/version'
 require 'date'
 require 'fileutils'
+require 'time_difference'
 
 module GitDeployTimer
   ENVIRONMENTS = Array['sit', 'stg', 'prd']
@@ -47,5 +48,24 @@ module GitDeployTimer
 
       commit.merge(env_timestamps)
     end
+  end
+
+  # Add elapsed times to merged commits and tags
+  def self.add_elapsed_times(merged_commits_and_tags)
+    merged_commits_and_tags.map do |m|
+      deploy_times = ENVIRONMENTS.select { |env| m.key?(env + 'Timestamp') }.map do |env|
+        env_date = m[env + 'Timestamp']
+        dt = TimeDifference.between(m[COMMIT_TIMESTAMP_KEY], env_date)
+
+        Hash["commitTo#{env.capitalize}Secs" => dt.in_seconds,
+             "commitTo#{env.capitalize}" => pp_time_difference(dt.in_general)]
+      end
+
+      m.merge(deploy_times.reduce(:merge))
+    end
+  end
+
+  def self.pp_time_difference(td)
+    td.select { |_, v| v > 0 }.map { |k, v| "#{v} #{k.to_s.chop}#{'s' if v > 1}" }.join(', ')
   end
 end

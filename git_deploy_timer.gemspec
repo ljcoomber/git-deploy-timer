@@ -24,4 +24,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec'
 
   spec.add_runtime_dependency 'git_deploy_timer'
+  spec.add_runtime_dependency 'time_difference', '~> 0.4.2'
 end

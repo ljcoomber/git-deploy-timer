@@ -48,4 +48,15 @@ describe GitDeployTimer do
     expect(merged).to be_in_reverse_order_for('stgTimestamp')
     expect(merged).to be_in_reverse_order_for('prdTimestamp')
   end
+
+  it 'adds elapsed times between commit and deploy to each environment' do
+    fixture = [{ 'commitTimestamp' => DateTime.iso8601('2010-04-10T12:05:00+01:00'),
+                 'prdTimestamp' => DateTime.iso8601('2010-06-02T08:00:00+01:00'),
+                 'stgTimestamp' => DateTime.iso8601('2010-06-01T09:00:00+01:00') }]
+
+    times = GitDeployTimer.add_elapsed_times(fixture)
+    expect(times.length).to eq(1)
+    expect(times.first['commitToStgSecs']).to eq(4481700)
+    expect(times.first['commitToStg']).to eq('1 month, 3 weeks, 20 hours, 55 minutes')
+  end
 end
